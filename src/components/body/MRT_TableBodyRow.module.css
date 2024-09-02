@@ -239,11 +239,11 @@
   }
 }
 
-.root-grid {
+.rootGrid {
   display: flex;
 }
 
-.root-virtualized {
+.rootVirtualized {
   position: absolute !important;
   top: 0;
   transition: none !important;

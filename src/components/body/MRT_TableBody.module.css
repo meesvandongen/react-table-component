@@ -3,27 +3,27 @@
   position: relative;
 }
 
-.root-grid {
+.rootGrid {
   display: grid;
 }
 
-.root-no-rows {
+.rootNoRows {
   min-height: 100px;
 }
 
-.root-virtualized {
+.rootVirtualized {
   height: var(--mrt-table-body-height);
 }
 
-.empty-row-tr-grid {
+.emptyRowTrGrid {
   display: grid;
 }
 
-.empty-row-td-grid {
+.emptyRowTdGrid {
   display: grid;
 }
 
-.empty-row-td-content {
+.emptyRowTdContent {
   color: var(--mantine-color-dimmed);
   font-style: italic;
   max-width: min(100vw, calc(var(--mrt-paper-width) * 1px));

@@ -1,32 +1,3 @@
-import type {
-	ActionIconProps,
-	AlertProps,
-	AutocompleteProps,
-	BadgeProps,
-	BoxProps,
-	CheckboxProps,
-	HighlightProps,
-	LoadingOverlayProps,
-	ModalProps,
-	MultiSelectProps,
-	PaginationProps,
-	PaperProps,
-	ProgressProps,
-	RadioProps,
-	RangeSliderProps,
-	SelectProps,
-	SkeletonProps,
-	SwitchProps,
-	TableProps,
-	TableTbodyProps,
-	TableTdProps,
-	TableTfootProps,
-	TableThProps,
-	TableTheadProps,
-	TableTrProps,
-	TextInputProps,
-	UnstyledButtonProps,
-} from "@mantine/core";
 import type { DateInputProps } from "@mantine/dates";
 import type {
 	AccessorFn,
@@ -1225,8 +1196,9 @@ export type MRT_TableOptions<TData extends MRT_RowData> = Omit<
 		row: MRT_Row<TData>;
 		table: MRT_TableInstance<TData>;
 	}) => ReactNode;
-	renderEmptyRowsFallback?: (props: {
+	renderEmptyRowsFallback: (props: {
 		table: MRT_TableInstance<TData>;
+		filterUsed: boolean;
 	}) => ReactNode;
 	renderGlobalFilterModeMenuItems?: (props: {
 		internalFilterOptions: MRT_InternalFilterOption[];
@@ -1258,6 +1230,26 @@ export type MRT_TableOptions<TData extends MRT_RowData> = Omit<
 	renderTopToolbarCustomActions?: (props: {
 		table: MRT_TableInstance<TData>;
 	}) => ReactNode;
+
+	renderTableBody: (props: {
+		height: number | string | undefined;
+		classes: string;
+		children: ReactNode;
+	}) => JSX.Element;
+	renderTable: (props: {
+		columnSizeVars: {
+			[key: string]: number;
+		};
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+	}) => JSX.Element;
+	renderTr: (props: {
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+	}) => JSX.Element;
+
 	rowCount?: number;
 	rowNumberDisplayMode?: "original" | "static";
 	rowPinningDisplayMode?:

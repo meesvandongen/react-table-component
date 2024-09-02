@@ -61,7 +61,7 @@ const preview: Preview = {
 						colorScheme === "dark" ? "#333" : "#fff";
 				}
 				return () => channel.off(DARK_MODE_EVENT_NAME, setDark);
-			}, [isDark]);
+			}, [colorScheme]);
 
 			useEffect(() => {
 				if (process.env.NODE_ENV === "development") return;

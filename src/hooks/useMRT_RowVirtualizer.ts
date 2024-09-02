@@ -9,14 +9,14 @@ import type {
 import { parseFromValuesOrFunc } from "../utils/utils";
 import { extraIndexRangeExtractor } from "../utils/virtualization.utils";
 
-export const useMRT_RowVirtualizer = <
+export function useMRT_RowVirtualizer<
 	TData extends MRT_RowData,
 	TScrollElement extends Element | Window = HTMLDivElement,
 	TItemElement extends Element = HTMLTableRowElement,
 >(
 	table: MRT_TableInstance<TData>,
 	rows?: MRT_Row<TData>[],
-): MRT_RowVirtualizer<TScrollElement, TItemElement> | undefined => {
+): MRT_RowVirtualizer<TScrollElement, TItemElement> | undefined {
 	const {
 		getRowModel,
 		getState,
@@ -38,17 +38,26 @@ export const useMRT_RowVirtualizer = <
 
 	const rowCount = rows?.length ?? getRowModel().rows.length;
 
-	const normalRowHeight =
-		density === "xs" ? 42.7 : density === "md" ? 54.7 : 70.7;
-
 	const rowVirtualizer = useVirtualizer({
 		count: renderDetailPanel ? rowCount * 2 : rowCount,
-		estimateSize: (index) =>
-			renderDetailPanel && index % 2 === 1
-				? expanded === true
-					? 100
-					: 0
-				: normalRowHeight,
+		estimateSize: (index) => {
+			if (renderDetailPanel && index % 2 === 1) {
+				if (expanded === true) {
+					return 100;
+				}
+				return 0;
+			}
+
+			if (density === "xs") {
+				return 42.7;
+			}
+
+			if (density === "md") {
+				return 54.7;
+			}
+
+			return 70.7;
+		},
 		getScrollElement: () => tableContainerRef.current,
 		measureElement:
 			typeof window !== "undefined" &&
@@ -73,4 +82,4 @@ export const useMRT_RowVirtualizer = <
 	}
 
 	return rowVirtualizer;
-};
+}

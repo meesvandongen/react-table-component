@@ -1,9 +1,3 @@
-import {
-	type TableProps,
-	TableTbody,
-	type TableTbodyProps,
-	Text,
-} from "@mantine/core";
 import clsx from "clsx";
 import { memo, useMemo } from "react";
 import { useMRT_RowVirtualizer } from "../../hooks/useMRT_RowVirtualizer";
@@ -15,23 +9,18 @@ import type {
 	MRT_TableInstance,
 	MRT_VirtualItem,
 } from "../../types";
-import { parseFromValuesOrFunc } from "../../utils/utils";
 import classes from "./MRT_TableBody.module.css";
 import { MRT_TableBodyRow, Memo_MRT_TableBodyRow } from "./MRT_TableBodyRow";
 
-export interface MRT_TableBodyProps<TData extends MRT_RowData>
-	extends TableTbodyProps {
+export interface MRT_TableBodyProps<TData extends MRT_RowData> {
 	columnVirtualizer?: MRT_ColumnVirtualizer;
 	table: MRT_TableInstance<TData>;
-	tableProps: Partial<TableProps>;
 }
 
-export const MRT_TableBody = <TData extends MRT_RowData>({
-	columnVirtualizer,
+export function MRT_TableBody<TData extends MRT_RowData>({
 	table,
-	tableProps,
-	...rest
-}: MRT_TableBodyProps<TData>) => {
+	columnVirtualizer,
+}: MRT_TableBodyProps<TData>) {
 	const {
 		getBottomRows,
 		getIsSomeRowsPinned,
@@ -42,21 +31,15 @@ export const MRT_TableBody = <TData extends MRT_RowData>({
 			enableStickyFooter,
 			enableStickyHeader,
 			layoutMode,
-			localization,
-			mantineTableBodyProps,
 			memoMode,
 			renderDetailPanel,
 			renderEmptyRowsFallback,
+			renderTableBody,
 			rowPinningDisplayMode,
 		},
 		refs: { tableFooterRef, tableHeadRef, tablePaperRef },
 	} = table;
 	const { columnFilters, globalFilter, isFullScreen, rowPinning } = getState();
-
-	const tableBodyProps = {
-		...parseFromValuesOrFunc(mantineTableBodyProps, { table }),
-		...rest,
-	};
 
 	const tableHeadHeight =
 		((enableStickyHeader || isFullScreen) &&
@@ -82,107 +65,85 @@ export const MRT_TableBody = <TData extends MRT_RowData>({
 		columnVirtualizer,
 		numRows: rows.length,
 		table,
-		tableProps,
 	};
 
 	return (
 		<>
+			{/* Pinned rows top */}
 			{!rowPinningDisplayMode?.includes("sticky") &&
-				getIsSomeRowsPinned("top") && (
-					<TableTbody
-						{...tableBodyProps}
-						__vars={{
-							"--mrt-table-head-height": `${tableHeadHeight}`,
-							...tableBodyProps?.__vars,
-						}}
-						className={clsx(
-							classes.pinned,
-							layoutMode?.startsWith("grid") && classes["root-grid"],
-							tableBodyProps?.className,
-						)}
-					>
-						{getTopRows().map((row, renderedRowIndex) => {
-							const rowProps = {
-								...commonRowProps,
-								renderedRowIndex,
-								row,
-							};
-							return memoMode === "rows" ? (
-								<Memo_MRT_TableBodyRow key={row.id} {...rowProps} />
-							) : (
-								<MRT_TableBodyRow key={row.id} {...rowProps} />
-							);
-						})}
-					</TableTbody>
-				)}
-			<TableTbody
-				{...tableBodyProps}
-				__vars={{
-					"--mrt-table-body-height": rowVirtualizer
-						? `${rowVirtualizer.getTotalSize()}px`
-						: undefined,
-					...tableBodyProps?.__vars,
-				}}
-				className={clsx(
+				getIsSomeRowsPinned("top") &&
+				renderTableBody({
+					height: tableHeadHeight,
+					classes: clsx(
+						classes.pinned,
+						layoutMode?.startsWith("grid") && classes.rootGrid,
+					),
+					children: getTopRows().map((row, renderedRowIndex) => {
+						const rowProps = {
+							...commonRowProps,
+							renderedRowIndex,
+							row,
+						};
+						return memoMode === "rows" ? (
+							<Memo_MRT_TableBodyRow key={row.id} {...rowProps} />
+						) : (
+							<MRT_TableBodyRow key={row.id} {...rowProps} />
+						);
+					}),
+				})}
+
+			{/* Normal rows */}
+			{renderTableBody({
+				height: rowVirtualizer
+					? `${rowVirtualizer.getTotalSize()}px`
+					: undefined,
+				classes: clsx(
 					classes.root,
-					layoutMode?.startsWith("grid") && classes["root-grid"],
-					!rows.length && classes["root-no-rows"],
-					rowVirtualizer && classes["root-virtualized"],
-					tableBodyProps?.className,
-				)}
-			>
-				{tableBodyProps?.children ??
-					(!rows.length ? (
+					layoutMode?.startsWith("grid") && classes.rootGrid,
+					!rows.length && classes.rootNoRows,
+					rowVirtualizer && classes.rootVirtualized,
+				),
+				children:
+					rows.length === 0 ? (
 						<tr
 							className={clsx(
-								"mrt-table-body-row",
-								layoutMode?.startsWith("grid") && classes["empty-row-tr-grid"],
+								layoutMode?.startsWith("grid") && classes.emptyRowTrGrid,
 							)}
 						>
 							<td
 								className={clsx(
-									"mrt-table-body-cell",
-									layoutMode?.startsWith("grid") &&
-										classes["empty-row-td-grid"],
+									layoutMode?.startsWith("grid") && classes.emptyRowTdGrid,
 								)}
 								colSpan={table.getVisibleLeafColumns().length}
 							>
-								{renderEmptyRowsFallback?.({ table }) ?? (
-									<Text
-										__vars={{
-											"--mrt-paper-width": `${tablePaperRef.current?.clientWidth}`,
-										}}
-										className={clsx(classes["empty-row-td-content"])}
-									>
-										{globalFilter || columnFilters.length
-											? localization.noResultsFound
-											: localization.noRecordsToDisplay}
-									</Text>
-								)}
+								{renderEmptyRowsFallback({
+									table,
+									filterUsed: globalFilter || columnFilters.length,
+								})}
 							</td>
 						</tr>
 					) : (
 						<>
 							{(virtualRows ?? rows).map(
 								(rowOrVirtualRow, renderedRowIndex) => {
+									let rowIndex = renderedRowIndex;
 									if (rowVirtualizer) {
 										if (renderDetailPanel) {
 											if (rowOrVirtualRow.index % 2 === 1) {
 												return null;
-											} else {
-												renderedRowIndex = rowOrVirtualRow.index / 2;
 											}
+											rowIndex = rowOrVirtualRow.index / 2;
 										} else {
-											renderedRowIndex = rowOrVirtualRow.index;
+											rowIndex = rowOrVirtualRow.index;
 										}
 									}
 									const row = rowVirtualizer
-										? rows[renderedRowIndex]
+										? rows[rowIndex]
 										: (rowOrVirtualRow as MRT_Row<TData>);
 									const props = {
 										...commonRowProps,
 										pinnedRowIds,
-										renderedRowIndex,
+										rowIndex,
 										row,
 										rowVirtualizer,
 										virtualRow: rowVirtualizer
@@ -198,40 +159,34 @@ export const MRT_TableBody = <TData extends MRT_RowData>({
 								},
 							)}
 						</>
-					))}
-			</TableTbody>
+					),
+			})}
+
+			{/* Pinned rows bottom */}
 			{!rowPinningDisplayMode?.includes("sticky") &&
-				getIsSomeRowsPinned("bottom") && (
-					<TableTbody
-						{...tableBodyProps}
-						__vars={{
-							"--mrt-table-footer-height": `${tableFooterHeight}`,
-							...tableBodyProps?.__vars,
-						}}
-						className={clsx(
-							classes.pinned,
-							layoutMode?.startsWith("grid") && classes["root-grid"],
-							tableBodyProps?.className,
-						)}
-					>
-						{getBottomRows().map((row, renderedRowIndex) => {
-							const props = {
-								...commonRowProps,
-								renderedRowIndex,
-								row,
-							};
-							return memoMode === "rows" ? (
-								<Memo_MRT_TableBodyRow key={row.id} {...props} />
-							) : (
-								<MRT_TableBodyRow key={row.id} {...props} />
-							);
-						})}
-					</TableTbody>
-				)}
+				getIsSomeRowsPinned("bottom") &&
+				renderTableBody({
+					height: tableFooterHeight,
+					classes: clsx(
+						classes.pinned,
+						layoutMode?.startsWith("grid") && classes.rootGrid,
+					),
+					children: getBottomRows().map((row, renderedRowIndex) => {
+						const props = {
+							...commonRowProps,
+							renderedRowIndex,
+							row,
+						};
+						return memoMode === "rows" ? (
+							<Memo_MRT_TableBodyRow key={row.id} {...props} />
+						) : (
+							<MRT_TableBodyRow key={row.id} {...props} />
+						);
+					}),
+				})}
 		</>
 	);
-};
-
+}
 export const Memo_MRT_TableBody = memo(
 	MRT_TableBody,
 	(prev, next) => prev.table.options.data === next.table.options.data,

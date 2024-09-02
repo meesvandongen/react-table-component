@@ -2,6 +2,6 @@
   background-color: var(--mrt-base-background-color);
 }
 
-.root-grid {
+.rootGrid {
   display: grid;
 }

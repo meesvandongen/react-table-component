@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import type { Meta } from "@storybook/react";
 import { type MRT_ColumnDef, MantineReactTable } from "../../src";
+import { Table } from "@mantine/core";
 
 const meta: Meta = {
 	title: "Features/Search Examples",
@@ -45,7 +46,30 @@ const data = [...Array(200)].map(() => ({
 }));
 
 export const SearchEnabledDefault = () => (
-	<MantineReactTable columns={columns} data={data} />
+	<MantineReactTable
+		columns={columns}
+		data={data}
+		table={{
+			
+		}}
+		renderTable={({ children, classes, columnSizeVars, table }) => (
+			<Table className={classes} style={columnSizeVars} highlightOnHover>
+				{children}
+			</Table>
+		)}
+		renderEmptyRowsFallback={({ table, filterUsed }) => (
+			<tr>
+				<td colSpan={table.getVisibleLeafColumns().length}>
+					{filterUsed ? "No results found" : "No data"}
+				</td>
+			</tr>
+		)}
+		renderTableBody={({ height, classes, children }) => (
+			<tbody className={classes} style={{ height }}>
+				{children}
+			</tbody>
+		)}
+	/>
 );
 
 export const SearchContains = () => (

@@ -20,11 +20,11 @@ interface Props<TData extends MRT_RowData> extends TableTheadProps {
 	table: MRT_TableInstance<TData>;
 }
 
-export const MRT_TableHead = <TData extends MRT_RowData>({
+export function MRT_TableHead<TData extends MRT_RowData>({
 	columnVirtualizer,
 	table,
 	...rest
-}: Props<TData>) => {
+}: Props<TData>) {
 	const {
 		getHeaderGroups,
 		getSelectedRowModel,
@@ -100,4 +100,4 @@ export const MRT_TableHead = <TData extends MRT_RowData>({
 			)}
 		</TableThead>
 	);
-};
+}
