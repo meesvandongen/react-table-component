@@ -1,9 +1,3 @@
-import {
-	Skeleton,
-	TableTd,
-	type TableTdProps,
-	useDirection,
-} from "@mantine/core";
 import clsx from "clsx";
 import {
 	type CSSProperties,
@@ -28,8 +22,7 @@ import { MRT_EditCellTextInput } from "../inputs/MRT_EditCellTextInput";
 import classes from "./MRT_TableBodyCell.module.css";
 import { MRT_TableBodyCellValue } from "./MRT_TableBodyCellValue";
 
-interface Props<TData extends MRT_RowData, TValue = MRT_CellValue>
-	extends TableTdProps {
+interface Props<TData extends MRT_RowData, TValue = MRT_CellValue> {
 	cell: MRT_Cell<TData, TValue>;
 	numRows?: number;
 	renderedColumnIndex?: number;
@@ -47,10 +40,7 @@ export const MRT_TableBodyCell = <TData extends MRT_RowData>({
 	rowRef,
 	table,
 	virtualCell,
-	...rest
 }: Props<TData>) => {
-	const direction = useDirection();
-
 	const {
 		getState,
 		options: {
@@ -64,8 +54,7 @@ export const MRT_TableBodyCell = <TData extends MRT_RowData>({
 			enableEditing,
 			enableGrouping,
 			layoutMode,
-			mantineSkeletonProps,
-			mantineTableBodyCellProps,
+			renderTd,
 		},
 		refs: { editInputRefs },
 		setEditingCell,
@@ -86,7 +75,7 @@ export const MRT_TableBodyCell = <TData extends MRT_RowData>({
 	const { columnDef } = column;
 	const { columnDefType } = columnDef;
 
-	const args = {
+	const skeletonProps = {
 		cell,
 		column,
 		renderedColumnIndex,
@@ -94,13 +83,6 @@ export const MRT_TableBodyCell = <TData extends MRT_RowData>({
 		row,
 		table,
 	};
-	const tableCellProps = {
-		...parseFromValuesOrFunc(mantineTableBodyCellProps, args),
-		...parseFromValuesOrFunc(columnDef.mantineTableBodyCellProps, args),
-		...rest,
-	};
-
-	const skeletonProps = parseFromValuesOrFunc(mantineSkeletonProps, args);
 
 	const [skeletonWidth, setSkeletonWidth] = useState(100);
 	useEffect(() => {
@@ -109,7 +91,7 @@ export const MRT_TableBodyCell = <TData extends MRT_RowData>({
 		setSkeletonWidth(
 			columnDefType === "display"
 				? size / 2
-				: Math.round(Math.random() * (size - size / 3) + size / 3),
+				: Math.round((size + 2 * size * Math.random()) / 3),
 		);
 	}, [isLoading, showSkeletons]);
 
@@ -121,7 +103,7 @@ export const MRT_TableBodyCell = <TData extends MRT_RowData>({
 	};
 	if (layoutMode === "grid") {
 		widthStyles.flex = `${
-			[0, false].includes(columnDef.grow!)
+			[0, false].includes(columnDef.grow)
 				? 0
 				: `var(--col-${parseCSSVarId(column.id)}-size)`
 		} 0 auto`;
@@ -189,98 +171,79 @@ export const MRT_TableBodyCell = <TData extends MRT_RowData>({
 		table,
 	};
 
-	return (
-		<TableTd
-			data-column-pinned={isColumnPinned || undefined}
-			data-dragging-column={isDraggingColumn || undefined}
-			data-first-right-pinned={
-				(isColumnPinned === "right" &&
-					column.getIsFirstColumn(isColumnPinned)) ||
-				undefined
-			}
-			data-hovered-column-target={isHoveredColumn || undefined}
-			data-index={renderedColumnIndex}
-			data-last-left-pinned={
-				(isColumnPinned === "left" && column.getIsLastColumn(isColumnPinned)) ||
-				undefined
-			}
-			data-last-row={renderedRowIndex === numRows - 1 || undefined}
-			data-resizing={
-				(columnResizeMode === "onChange" &&
-					columnSizingInfo?.isResizingColumn === column.id &&
-					columnResizeDirection) ||
-				undefined
-			}
-			{...tableCellProps}
-			__vars={{
-				"--mrt-cell-align":
-					tableCellProps.align ?? (direction.dir === "rtl" ? "right" : "left"),
-				"--mrt-table-cell-left":
-					isColumnPinned === "left"
-						? `${column.getStart(isColumnPinned)}`
-						: undefined,
-				"--mrt-table-cell-right":
-					isColumnPinned === "right"
-						? `${column.getAfter(isColumnPinned)}`
-						: undefined,
-				...tableCellProps.__vars,
-			}}
-			className={clsx(
-				classes.root,
-				layoutMode?.startsWith("grid") && classes["root-grid"],
-				virtualCell && classes["root-virtualized"],
-				isEditable &&
-					editDisplayMode === "cell" &&
-					classes["root-cursor-pointer"],
-				isEditable &&
-					["cell", "table"].includes(editDisplayMode ?? "") &&
-					columnDefType !== "display" &&
-					classes["root-editable-hover"],
-				columnDefType === "data" && classes["root-data-col"],
-				density === "xs" && classes["root-nowrap"],
-				tableCellProps?.className,
-			)}
-			onDoubleClick={handleDoubleClick}
-			onDragEnter={handleDragEnter}
-			style={(theme) => ({
-				...widthStyles,
-				...parseFromValuesOrFunc(tableCellProps.style, theme),
-			})}
-		>
-			{tableCellProps.children ?? (
-				<>
-					{cell.getIsPlaceholder() ? (
-						columnDef.PlaceholderCell?.({ cell, column, row, table }) ?? null
-					) : showSkeletons !== false && (isLoading || showSkeletons) ? (
-						<Skeleton height={20} width={skeletonWidth} {...skeletonProps} />
-					) : columnDefType === "display" &&
-						(["mrt-row-expand", "mrt-row-numbers", "mrt-row-select"].includes(
-							column.id,
-						) ||
-							!row.getIsGrouped()) ? (
-						columnDef.Cell?.({
-							column,
-							renderedCellValue: cell.renderValue() as any,
-							row,
-							rowRef,
-							...cellValueProps,
-						})
-					) : isCreating || isEditing ? (
-						<MRT_EditCellTextInput cell={cell} table={table} />
-					) : showClickToCopyButton && columnDef.enableClickToCopy !== false ? (
-						<MRT_CopyButton cell={cell} table={table}>
-							<MRT_TableBodyCellValue {...cellValueProps} />
-						</MRT_CopyButton>
-					) : (
+	const isLastRow = renderedRowIndex === numRows - 1;
+	const isResizing =
+		columnResizeMode === "onChange" &&
+		columnSizingInfo?.isResizingColumn === column.id &&
+		columnResizeDirection;
+
+	const vars = {
+		"--mrt-table-cell-left":
+			isColumnPinned === "left"
+				? `${column.getStart(isColumnPinned)}`
+				: undefined,
+		"--mrt-table-cell-right":
+			isColumnPinned === "right"
+				? `${column.getAfter(isColumnPinned)}`
+				: undefined,
+	};
+
+	return renderTd({
+		isDraggingColumn,
+		isHoveredColumn,
+		isColumnPinned,
+		renderedColumnIndex,
+		isLastRow,
+		vars,
+		handleDoubleClick,
+		handleDragEnter,
+		widthStyles,
+		isResizing,
+		classes: clsx(
+			classes.root,
+			layoutMode?.startsWith("grid") && classes.rootGrid,
+			virtualCell && classes.rootVirtualized,
+			isEditable && editDisplayMode === "cell" && classes.rootCursorPointer,
+			isEditable &&
+				["cell", "table"].includes(editDisplayMode ?? "") &&
+				columnDefType !== "display" &&
+				classes.rootEditableHover,
+			columnDefType === "data" && classes.rootDataCol,
+			density === "xs" && classes.rootNowrap,
+		),
+		children: (
+			<>
+				{cell.getIsPlaceholder() ? (
+					columnDef.PlaceholderCell?.({ cell, column, row, table }) ?? null
+				) : showSkeletons !== false && (isLoading || showSkeletons) ? (
+					<Skeleton height={20} width={skeletonWidth} {...skeletonProps} />
+				) : columnDefType === "display" &&
+					(["mrt-row-expand", "mrt-row-numbers", "mrt-row-select"].includes(
+						column.id,
+					) ||
+						!row.getIsGrouped()) ? (
+					columnDef.Cell?.({
+						column,
+						renderedCellValue: cell.renderValue() as any,
+						row,
+						rowRef,
+						...cellValueProps,
+					})
+				) : isCreating || isEditing ? (
+					<MRT_EditCellTextInput cell={cell} table={table} />
+				) : showClickToCopyButton && columnDef.enableClickToCopy !== false ? (
+					<MRT_CopyButton cell={cell} table={table}>
 						<MRT_TableBodyCellValue {...cellValueProps} />
-					)}
-					{cell.getIsGrouped() && !columnDef.GroupedCell && (
-						<> ({row.subRows?.length})</>
-					)}
-				</>
-			)}
-		</TableTd>
-	);
+					</MRT_CopyButton>
+				) : (
+					<MRT_TableBodyCellValue {...cellValueProps} />
+				)}
+				{cell.getIsGrouped() && !columnDef.GroupedCell && (
+					<> ({row.subRows?.length})</>
+				)}
+			</>
+		),
+	});
 };
 
 export const Memo_MRT_TableBodyCell = memo(

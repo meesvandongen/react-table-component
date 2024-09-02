@@ -47,29 +47,29 @@
   }
 }
 
-.root-grid {
+.rootGrid {
   align-items: center;
   justify-content: var(--mrt-cell-align, flex-start);
   display: flex;
 }
 
-.root-virtualized {
+.rootVirtualized {
   transition: none;
 }
 
-.root-data-col {
+.rootDataCol {
   text-overflow: ellipsis;
 }
 
-.root-nowrap {
+.rootNowrap {
   white-space: nowrap;
 }
 
-.root-cursor-pointer {
+.rootCursorPointer {
   cursor: pointer;
 }
 
-.root-editable-hover {
+.rootEditableHover {
   @mixin hover {
     outline: 1px solid var(--mantine-color-gray-7);
   }
