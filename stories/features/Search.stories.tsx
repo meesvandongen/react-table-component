@@ -1,7 +1,8 @@
 import { faker } from "@faker-js/faker";
 import type { Meta } from "@storybook/react";
 import { type MRT_ColumnDef, MantineReactTable } from "../../src";
-import { Table } from "@mantine/core";
+import { ActionIcon, Table, Tooltip } from "@mantine/core";
+import { IconPinnedOff, IconPinned } from "@tabler/icons-react";
 
 const meta: Meta = {
 	title: "Features/Search Examples",
@@ -49,9 +50,11 @@ export const SearchEnabledDefault = () => (
 	<MantineReactTable
 		columns={columns}
 		data={data}
-		table={{
-			
-		}}
+		renderTablePaper={({ children, classes, style }) => (
+			<div className={classes} style={style}>
+				{children}
+			</div>
+		)}
 		renderTable={({ children, classes, columnSizeVars, table }) => (
 			<Table className={classes} style={columnSizeVars} highlightOnHover>
 				{children}
@@ -69,6 +72,54 @@ export const SearchEnabledDefault = () => (
 				{children}
 			</tbody>
 		)}
+		renderTableBodyRow={({ children, classes, vars }) => (
+			<tr className={classes} style={vars}>
+				{children}
+			</tr>
+		)}
+		renderTableBodyCell={({ children, classes, vars }) => (
+			<td className={classes} style={vars}>
+				{children}
+			</td>
+		)}
+		renderColumnPinningButtons={({ column }) => {
+			return column.getIsPinned() ? (
+				<Tooltip label={"unpin"} withinPortal>
+					<ActionIcon
+						color="gray"
+						onClick={() => column.pin(false)}
+						size="md"
+						variant="subtle"
+					>
+						<IconPinnedOff />
+					</ActionIcon>
+				</Tooltip>
+			) : (
+				<>
+					<Tooltip label={"pin to left"} withinPortal>
+						<ActionIcon
+							color="gray"
+							onClick={() => column.pin("left")}
+							size="md"
+							variant="subtle"
+						>
+							<IconPinned />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip withinPortal>
+						<ActionIcon
+							color="gray"
+							onClick={() => column.pin("right")}
+							size="md"
+							variant="subtle"
+						>
+							<IconPinned />
+						</ActionIcon>
+					</Tooltip>
+				</>
+			);
+		}}
+		
 	/>
 );
 

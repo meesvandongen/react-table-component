@@ -54,7 +54,7 @@ export const MRT_TableBodyCell = <TData extends MRT_RowData>({
 			enableEditing,
 			enableGrouping,
 			layoutMode,
-			renderTd,
+			renderTableBodyCell: renderTd,
 		},
 		refs: { editInputRefs },
 		setEditingCell,

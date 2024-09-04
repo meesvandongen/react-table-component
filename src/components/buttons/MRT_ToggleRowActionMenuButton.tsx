@@ -1,5 +1,3 @@
-import { ActionIcon, Tooltip } from "@mantine/core";
-import type { MouseEvent } from "react";
 import type {
 	MRT_Cell,
 	MRT_CellValue,
@@ -17,21 +15,20 @@ interface Props<TData extends MRT_RowData, TValue = MRT_CellValue> {
 	table: MRT_TableInstance<TData>;
 }
 
-export const MRT_ToggleRowActionMenuButton = <TData extends MRT_RowData>({
+export function MRT_ToggleRowActionMenuButton<TData extends MRT_RowData>({
 	cell,
 	row,
 	table,
-}: Props<TData>) => {
+}: Props<TData>) {
 	const {
 		getState,
 		options: {
 			createDisplayMode,
 			editDisplayMode,
 			enableEditing,
-			icons: { IconEdit },
-			localization: { edit },
 			renderRowActionMenuItems,
 			renderRowActions,
+			renderToggleRowActionMenuButton,
 		},
 		setEditingRow,
 	} = table;
@@ -41,42 +38,42 @@ export const MRT_ToggleRowActionMenuButton = <TData extends MRT_RowData>({
 	const isCreating = creatingRow?.id === row.id;
 	const isEditing = editingRow?.id === row.id;
 
-	const handleStartEditMode = (event: MouseEvent) => {
-		event.stopPropagation();
+	function handleStartEditMode() {
 		setEditingRow({ ...row });
-	};
+	}
 
 	const showEditActionButtons =
 		(isCreating && createDisplayMode === "row") ||
 		(isEditing && editDisplayMode === "row");
 
-	return (
-		<>
-			{renderRowActions && !showEditActionButtons ? (
-				renderRowActions({ cell, row, table })
-			) : showEditActionButtons ? (
-				<MRT_EditActionButtons row={row} table={table} />
-			) : !renderRowActionMenuItems &&
-				parseFromValuesOrFunc(enableEditing, row) ? (
-				<Tooltip label={edit} openDelay={1000} position="right" withinPortal>
-					<ActionIcon
-						aria-label={edit}
-						color="gray"
-						disabled={!!editingRow && editingRow.id !== row.id}
-						onClick={handleStartEditMode}
-						size="md"
-						variant="subtle"
-					>
-						<IconEdit />
-					</ActionIcon>
-				</Tooltip>
-			) : renderRowActionMenuItems ? (
-				<MRT_RowActionMenu
-					handleEdit={handleStartEditMode}
-					row={row}
-					table={table}
-				/>
-			) : null}
-		</>
-	);
-};
+	if (showEditActionButtons) {
+		return <MRT_EditActionButtons row={row} table={table} />;
+	}
+
+	if (renderRowActions) {
+		return renderRowActions({ cell, row, table });
+	}
+
+	if (renderRowActionMenuItems) {
+		return (
+			<MRT_RowActionMenu
+				handleEdit={handleStartEditMode}
+				row={row}
+				table={table}
+			/>
+		);
+	}
+
+	if (parseFromValuesOrFunc(enableEditing, row)) {
+		const disabled = !!editingRow && editingRow.id !== row.id;
+		return renderToggleRowActionMenuButton({
+			cell,
+			row,
+			table,
+			onClick: handleStartEditMode,
+			disabled,
+		});
+	}
+
+	return null;
+}

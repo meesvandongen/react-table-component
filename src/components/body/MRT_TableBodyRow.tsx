@@ -10,10 +10,9 @@ import type {
 	MRT_VirtualItem,
 } from "../../types";
 import { getIsRowSelected } from "../../utils/row.utils";
-import { parseFromValuesOrFunc } from "../../utils/utils";
 import { MRT_TableBodyCell, Memo_MRT_TableBodyCell } from "./MRT_TableBodyCell";
 import classes from "./MRT_TableBodyRow.module.css";
-import { MRT_TableDetailPanel } from "./MRT_TableDetailPanel";
+import { MRT_TableDetailPanelRow } from "./MRT_TableDetailPanelRow";
 
 interface Props<TData extends MRT_RowData> {
 	columnVirtualizer?: MRT_ColumnVirtualizer;
@@ -46,7 +45,7 @@ export const MRT_TableBodyRow = <TData extends MRT_RowData>({
 			layoutMode,
 			memoMode,
 			renderDetailPanel,
-			renderTr,
+			renderTableBodyRow,
 			rowPinningDisplayMode,
 		},
 		refs: { tableFooterRef, tableHeadRef },
@@ -96,10 +95,7 @@ export const MRT_TableBodyRow = <TData extends MRT_RowData>({
 	const tableFooterHeight =
 		(enableStickyFooter && tableFooterRef.current?.clientHeight) || 0;
 
-	const rowHeight =
-		// @ts-ignore
-		Number.parseInt(tableRowProps?.style?.height, 10) ||
-		(density === "xs" ? 37 : density === "md" ? 53 : 69);
+	const rowHeight = density === "xs" ? 37 : density === "md" ? 53 : 69;
 
 	const handleDragEnter = (_e: DragEvent) => {
 		if (enableRowOrdering && draggingRow) {
@@ -122,7 +118,7 @@ export const MRT_TableBodyRow = <TData extends MRT_RowData>({
 
 	return (
 		<>
-			{renderTr({
+			{renderTableBodyRow({
 				isRowSelected,
 				isRowPinned,
 				isRowStickyPinned,
@@ -200,12 +196,11 @@ export const MRT_TableBodyRow = <TData extends MRT_RowData>({
 			})}
 
 			{renderDetailPanel && !row.getIsGrouped() && (
-				<MRT_TableDetailPanel
+				<MRT_TableDetailPanelRow
 					parentRowRef={rowRef}
 					renderedRowIndex={renderedRowIndex}
 					row={row}
 					rowVirtualizer={rowVirtualizer}
-					striped={striped}
 					table={table}
 					virtualRow={virtualRow}
 				/>

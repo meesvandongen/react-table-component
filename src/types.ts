@@ -1,4 +1,3 @@
-import type { DateInputProps } from "@mantine/dates";
 import type {
 	AccessorFn,
 	AggregationFn,
@@ -20,6 +19,7 @@ import type {
 	OnChangeFn,
 	PaginationState,
 	Row,
+	RowPinningPosition,
 	RowSelectionState,
 	SortingFn,
 	SortingState,
@@ -35,7 +35,9 @@ import type {
 	VirtualizerOptions,
 } from "@tanstack/react-virtual";
 import type {
+	CSSProperties,
 	Dispatch,
+	DragEventHandler,
 	HTMLProps,
 	MutableRefObject,
 	ReactNode,
@@ -45,9 +47,6 @@ import type {
 import type { MRT_AggregationFns } from "./fns/aggregationFns";
 import type { MRT_FilterFns } from "./fns/filterFns";
 import type { MRT_SortingFns } from "./fns/sortingFns";
-import type { MRT_Icons } from "./icons";
-
-export type { MRT_Icons };
 
 export type LiteralUnion<T extends U, U = string> =
 	| T
@@ -307,13 +306,8 @@ export type MRT_TableInstance<TData extends MRT_RowData> = Omit<
 	setShowToolbarDropZone: Dispatch<SetStateAction<boolean>>;
 };
 
-export type MRT_DefinedTableOptions<TData extends MRT_RowData> = Omit<
-	MRT_TableOptions<TData>,
-	"icons" | "localization"
-> & {
-	icons: MRT_Icons;
-	localization: MRT_Localization;
-};
+export type MRT_DefinedTableOptions<TData extends MRT_RowData> =
+	MRT_TableOptions<TData> & {};
 
 export type MRT_StatefulTableOptions<TData extends MRT_RowData> =
 	MRT_DefinedTableOptions<TData> & {
@@ -733,19 +727,11 @@ export type MRT_TableOptions<TData extends MRT_RowData> = Omit<
 	) => string | undefined;
 	globalFilterFn?: MRT_FilterOption;
 	globalFilterModeOptions?: MRT_FilterOption[] | null;
-	icons?: Partial<MRT_Icons>;
 	initialState?: Partial<MRT_TableState<TData>>;
 	/**
 	 * Changes which kind of CSS layout is used to render the table. `semantic` uses default semantic HTML elements, while `grid` adds CSS grid and flexbox styles
 	 */
 	layoutMode?: "grid" | "grid-no-grow" | "semantic";
-	/**
-	 * Pass in either a locale imported from `mantine-react-table/locales/*` or a custom locale object.
-	 *
-	 * See the localization (i18n) guide for more info:
-	 * @link https://www.mantine-react-table.com/docs/guides/localization
-	 */
-	localization?: Partial<MRT_Localization>;
 
 	/**
 	 * Memoize cells, rows, or the entire table body to potentially improve render performance.
@@ -863,6 +849,11 @@ export type MRT_TableOptions<TData extends MRT_RowData> = Omit<
 		table: MRT_TableInstance<TData>;
 	}) => ReactNode;
 
+	renderTablePaper: (props: {
+		children: ReactNode;
+		classes: string;
+		style: CSSProperties;
+	}) => JSX.Element;
 	renderTableBody: (props: {
 		height: number | string | undefined;
 		classes: string;
@@ -876,17 +867,113 @@ export type MRT_TableOptions<TData extends MRT_RowData> = Omit<
 		classes: string;
 		children: ReactNode;
 	}) => JSX.Element;
-	renderTr: (props: {
+	renderTableBodyRow: (props: {
 		table: MRT_TableInstance<TData>;
 		classes: string;
 		children: ReactNode;
 	}) => JSX.Element;
-	renderTd: (props: {
+	renderTableBodyCell: (props: {
 		cell: MRT_Cell<TData, MRT_CellValue>;
 		column: MRT_Column<TData, MRT_CellValue>;
 		renderedColumnIndex: number;
 		renderedRowIndex: number;
 		row: MRT_Row<TData>;
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+	}) => JSX.Element;
+	renderTableDetailPanel: (props: {
+		row: MRT_Row<TData>;
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+	}) => JSX.Element;
+	renderTableDetailPanelRow: (props: {
+		row: MRT_Row<TData>;
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+	}) => JSX.Element;
+	renderTableDetailPanelCell: (props: {
+		row: MRT_Row<TData>;
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+	}) => JSX.Element;
+	renderColumnPinningButtons: (props: {
+		column: MRT_Column<TData, MRT_CellValue>;
+		table: MRT_TableInstance<TData>;
+	}) => ReactNode;
+	renderCopyButton: (props: {
+		cell: MRT_Cell<TData, MRT_CellValue>;
+		table: MRT_TableInstance<TData>;
+		children: ReactNode;
+	}) => ReactNode;
+	renderEditActionButtons: (props: {
+		row: MRT_Row<TData>;
+		table: MRT_TableInstance<TData>;
+		handleCancel: () => void;
+		handleSubmitRow: () => void;
+		isSaving: boolean;
+	}) => ReactNode;
+	renderExpandAllButton: (props: {
+		table: MRT_TableInstance<TData>;
+		disabled: boolean;
+		onClick: () => void;
+	}) => ReactNode;
+	renderExpandButton: (props: {
+		row: MRT_Row<TData>;
+		table: MRT_TableInstance<TData>;
+		disabled: boolean;
+		onClick: () => void;
+	}) => ReactNode;
+	renderGrabHandleButton: (props: {
+		onDragStart: DragEventHandler<HTMLButtonElement>;
+		onDragEnd: DragEventHandler<HTMLButtonElement>;
+	}) => ReactNode;
+	renderRowPinButton: (props: {
+		row: MRT_Row<TData>;
+		table: MRT_TableInstance<TData>;
+		pinningPosition: RowPinningPosition;
+		onClick: () => void;
+	}) => ReactNode;
+	renderShowHideColumnsButton: (props: {
+		table: MRT_TableInstance<TData>;
+		children: ReactNode;
+	}) => ReactNode;
+	renderToggleDensePaddingButton: (props: {
+		table: MRT_TableInstance<TData>;
+		onClick: () => void;
+	}) => ReactNode;
+	renderToggleFiltersButton: (props: {
+		table: MRT_TableInstance<TData>;
+		onClick: () => void;
+	}) => ReactNode;
+	renderToggleFullScreenButton: (props: {
+		table: MRT_TableInstance<TData>;
+		onClick: () => void;
+	}) => ReactNode;
+	renderToggleGlobalFilterButton: (props: {
+		table: MRT_TableInstance<TData>;
+		onClick: () => void;
+		disabled: boolean;
+		showGlobalFilter: boolean;
+	}) => ReactNode;
+	renderToggleRowActionMenuButton: (props: {
+		row: MRT_Row<TData>;
+		table: MRT_TableInstance<TData>;
+		cell: MRT_Cell<TData, MRT_CellValue>;
+		onClick: () => void;
+		disabled: boolean;
+	}) => ReactNode;
+	renderTableFooter: (props: {
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+		ref: (ref: HTMLTableSectionElement) => void;
+	}) => JSX.Element;
+	renderTableFooterCell: (props: {
+		column: MRT_Column<TData, MRT_CellValue>;
 		table: MRT_TableInstance<TData>;
 		classes: string;
 		children: ReactNode;

@@ -1,10 +1,3 @@
-import {
-	CopyButton,
-	Tooltip,
-	UnstyledButton,
-	type UnstyledButtonProps,
-} from "@mantine/core";
-import clsx from "clsx";
 import type { ReactNode } from "react";
 import type {
 	MRT_Cell,
@@ -12,67 +5,25 @@ import type {
 	MRT_RowData,
 	MRT_TableInstance,
 } from "../../types";
-import { parseFromValuesOrFunc } from "../../utils/utils";
-import classes from "./MRT_CopyButton.module.css";
 
-interface Props<TData extends MRT_RowData, TValue = MRT_CellValue>
-	extends UnstyledButtonProps {
+interface Props<TData extends MRT_RowData, TValue = MRT_CellValue> {
 	cell: MRT_Cell<TData, TValue>;
 	children: ReactNode;
 	table: MRT_TableInstance<TData>;
 }
 
-export const MRT_CopyButton = <TData extends MRT_RowData>({
+export function MRT_CopyButton<TData extends MRT_RowData>({
 	cell,
 	children,
 	table,
-	...rest
-}: Props<TData>) => {
+}: Props<TData>) {
 	const {
-		options: {
-			localization: { clickToCopy, copiedToClipboard },
-			mantineCopyButtonProps,
-		},
+		options: { renderCopyButton },
 	} = table;
-	const { column, row } = cell;
-	const { columnDef } = column;
 
-	const arg = { cell, column, row, table };
-	const buttonProps = {
-		...parseFromValuesOrFunc(mantineCopyButtonProps, arg),
-		...parseFromValuesOrFunc(columnDef.mantineCopyButtonProps, arg),
-		...rest,
-	};
-
-	return (
-		<CopyButton value={cell.getValue<string>()}>
-			{({ copied, copy }) => (
-				<Tooltip
-					color={copied ? "green" : undefined}
-					label={
-						buttonProps?.title ?? (copied ? copiedToClipboard : clickToCopy)
-					}
-					openDelay={1000}
-					withinPortal
-				>
-					<UnstyledButton
-						{...buttonProps}
-						className={clsx(
-							"mrt-copy-button",
-							classes.root,
-							buttonProps?.className,
-						)}
-						onClick={(e) => {
-							e.stopPropagation();
-							copy();
-						}}
-						role="presentation"
-						title={undefined}
-					>
-						{children}
-					</UnstyledButton>
-				</Tooltip>
-			)}
-		</CopyButton>
-	);
-};
+	return renderCopyButton({
+		cell,
+		table,
+		children,
+	});
+}

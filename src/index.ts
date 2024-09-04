@@ -30,7 +30,8 @@ export * from "./components/body/MRT_TableBodyCellValue";
 export * from "./components/body/MRT_TableBodyRow";
 export * from "./components/body/MRT_TableBodyRowGrabHandle";
 export * from "./components/body/MRT_TableBodyRowPinButton";
-export * from "./components/body/MRT_TableDetailPanel";
+export * from "./components/body/MRT_TableDetailPanelCell";
+export * from "./components/body/MRT_TableDetailPanelRow";
 //button components
 export * from "./components/buttons/MRT_ColumnPinningButtons";
 export * from "./components/buttons/MRT_CopyButton";

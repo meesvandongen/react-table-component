@@ -1,4 +1,3 @@
-import { TableTh, type TableThProps, useDirection } from "@mantine/core";
 import clsx from "clsx";
 import type { CSSProperties } from "react";
 import type { MRT_Header, MRT_RowData, MRT_TableInstance } from "../../types";
@@ -6,21 +5,19 @@ import { parseCSSVarId } from "../../utils/style.utils";
 import { parseFromValuesOrFunc } from "../../utils/utils";
 import classes from "./MRT_TableFooterCell.module.css";
 
-interface Props<TData extends MRT_RowData> extends TableThProps {
+interface Props<TData extends MRT_RowData> {
 	footer: MRT_Header<TData>;
 	renderedColumnIndex?: number;
 	table: MRT_TableInstance<TData>;
 }
 
-export const MRT_TableFooterCell = <TData extends MRT_RowData>({
+export function MRT_TableFooterCell<TData extends MRT_RowData>({
 	footer,
 	renderedColumnIndex,
 	table,
-	...rest
-}: Props<TData>) => {
-	const direction = useDirection();
+}: Props<TData>) {
 	const {
-		options: { enableColumnPinning, layoutMode, mantineTableFooterCellProps },
+		options: { enableColumnPinning, layoutMode, renderTableFooterCell },
 	} = table;
 	const { column } = footer;
 	const { columnDef } = column;
@@ -30,13 +27,6 @@ export const MRT_TableFooterCell = <TData extends MRT_RowData>({
 		enableColumnPinning &&
 		columnDef.columnDefType !== "group" &&
 		column.getIsPinned();
-
-	const args = { column, table };
-	const tableCellProps = {
-		...parseFromValuesOrFunc(mantineTableFooterCellProps, args),
-		...parseFromValuesOrFunc(columnDef.mantineTableFooterCellProps, args),
-		...rest,
-	};
 
 	const widthStyles: CSSProperties = {
 		minWidth: `max(calc(var(--header-${parseCSSVarId(
@@ -54,60 +44,42 @@ export const MRT_TableFooterCell = <TData extends MRT_RowData>({
 		widthStyles.flex = `${+(columnDef.grow || 0)} 0 auto`;
 	}
 
-	return (
-		<TableTh
-			colSpan={footer.colSpan}
-			data-column-pinned={isColumnPinned || undefined}
-			data-first-right-pinned={
-				(isColumnPinned === "right" &&
-					column.getIsFirstColumn(isColumnPinned)) ||
-				undefined
-			}
-			data-index={renderedColumnIndex}
-			data-last-left-pinned={
-				(isColumnPinned === "left" && column.getIsLastColumn(isColumnPinned)) ||
-				undefined
-			}
-			{...tableCellProps}
-			__vars={{
-				"--mrt-cell-align":
-					tableCellProps.align ??
-					(columnDefType === "group"
-						? "center"
-						: direction.dir === "rtl"
-							? "right"
-							: "left"),
-				"--mrt-table-cell-left":
-					isColumnPinned === "left"
-						? `${column.getStart(isColumnPinned)}`
-						: undefined,
-				"--mrt-table-cell-right":
-					isColumnPinned === "right"
-						? `${column.getAfter(isColumnPinned)}`
-						: undefined,
-				...tableCellProps?.__vars,
-			}}
-			className={clsx(
-				classes.root,
-				layoutMode?.startsWith("grid") && classes.grid,
-				columnDefType === "group" && classes.group,
-				tableCellProps?.className,
-			)}
-			style={(theme) => ({
-				...widthStyles,
-				...parseFromValuesOrFunc(tableCellProps.style, theme),
-			})}
-		>
-			{tableCellProps.children ??
-				(footer.isPlaceholder
-					? null
-					: parseFromValuesOrFunc(columnDef.Footer, {
-							column,
-							footer,
-							table,
-						}) ??
-						columnDef.footer ??
-						null)}
-		</TableTh>
-	);
-};
+	const firstPinnedRight =
+		isColumnPinned === "right" && column.getIsFirstColumn(isColumnPinned);
+	const lastPinnedLeft =
+		isColumnPinned === "left" && column.getIsLastColumn(isColumnPinned);
+
+	return renderTableFooterCell({
+		footer,
+		renderedColumnIndex,
+		table,
+		widthStyles,
+		isColumnPinned,
+		firstPinnedRight,
+		lastPinnedLeft,
+		children: footer.isPlaceholder
+			? null
+			: parseFromValuesOrFunc(columnDef.Footer, {
+					column,
+					footer,
+					table,
+				}) ??
+				columnDef.footer ??
+				null,
+		classes: clsx(
+			classes.root,
+			layoutMode?.startsWith("grid") && classes.grid,
+			columnDefType === "group" && classes.group,
+		),
+		vars: {
+			"--mrt-table-cell-left":
+				isColumnPinned === "left"
+					? `${column.getStart(isColumnPinned)}`
+					: undefined,
+			"--mrt-table-cell-right":
+				isColumnPinned === "right"
+					? `${column.getAfter(isColumnPinned)}`
+					: undefined,
+		},
+	});
+}
