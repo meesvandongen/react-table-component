@@ -1,4 +1,3 @@
-import { Box, TableTr, type TableTrProps } from "@mantine/core";
 import clsx from "clsx";
 import type {
 	MRT_ColumnVirtualizer,
@@ -8,24 +7,22 @@ import type {
 	MRT_TableInstance,
 	MRT_VirtualItem,
 } from "../../types";
-import { parseFromValuesOrFunc } from "../../utils/utils";
 import { MRT_TableFooterCell } from "./MRT_TableFooterCell";
 import classes from "./MRT_TableFooterRow.module.css";
 
-interface Props<TData extends MRT_RowData> extends TableTrProps {
+interface Props<TData extends MRT_RowData> {
 	columnVirtualizer?: MRT_ColumnVirtualizer;
 	footerGroup: MRT_HeaderGroup<TData>;
 	table: MRT_TableInstance<TData>;
 }
 
-export const MRT_TableFooterRow = <TData extends MRT_RowData>({
+export function MRT_TableFooterRow<TData extends MRT_RowData>({
 	columnVirtualizer,
 	footerGroup,
 	table,
-	...rest
-}: Props<TData>) => {
+}: Props<TData>) {
 	const {
-		options: { layoutMode, mantineTableFooterRowProps },
+		options: { layoutMode, renderTableFooterRow },
 	} = table;
 
 	const { virtualColumns, virtualPaddingLeft, virtualPaddingRight } =
@@ -43,47 +40,50 @@ export const MRT_TableFooterRow = <TData extends MRT_RowData>({
 		return null;
 	}
 
-	const tableRowProps = {
-		...parseFromValuesOrFunc(mantineTableFooterRowProps, {
-			footerGroup,
-			table,
-		}),
-		...rest,
-	};
+	return renderTableFooterRow({
+		classes: clsx(
+			classes.root,
+			layoutMode?.startsWith("grid") && classes["layout-mode-grid"],
+		),
+		table,
+		children: (
+			<>
+				{virtualPaddingLeft ? (
+					<th
+						style={{
+							display: "flex",
+							width: `${virtualPaddingLeft}px`,
+						}}
+					/>
+				) : null}
+				{(virtualColumns ?? footerGroup.headers).map(
+					(footerOrVirtualFooter, renderedColumnIndex) => {
+						let footer = footerOrVirtualFooter as MRT_Header<TData>;
+						if (columnVirtualizer) {
+							renderedColumnIndex = (footerOrVirtualFooter as MRT_VirtualItem)
+								.index;
+							footer = footerGroup.headers[renderedColumnIndex];
+						}
 
-	return (
-		<TableTr
-			className={clsx(
-				classes.root,
-				layoutMode?.startsWith("grid") && classes["layout-mode-grid"],
-			)}
-			{...tableRowProps}
-		>
-			{virtualPaddingLeft ? (
-				<Box component="th" display="flex" w={virtualPaddingLeft} />
-			) : null}
-			{(virtualColumns ?? footerGroup.headers).map(
-				(footerOrVirtualFooter, renderedColumnIndex) => {
-					let footer = footerOrVirtualFooter as MRT_Header<TData>;
-					if (columnVirtualizer) {
-						renderedColumnIndex = (footerOrVirtualFooter as MRT_VirtualItem)
-							.index;
-						footer = footerGroup.headers[renderedColumnIndex];
-					}
-
-					return (
-						<MRT_TableFooterCell
-							footer={footer}
-							key={footer.id}
-							renderedColumnIndex={renderedColumnIndex}
-							table={table}
-						/>
-					);
-				},
-			)}
-			{virtualPaddingRight ? (
-				<Box component="th" display="flex" w={virtualPaddingRight} />
-			) : null}
-		</TableTr>
-	);
-};
+						return (
+							<MRT_TableFooterCell
+								footer={footer}
+								key={footer.id}
+								renderedColumnIndex={renderedColumnIndex}
+								table={table}
+							/>
+						);
+					},
+				)}
+				{virtualPaddingRight ? (
+					<th
+						style={{
+							display: "flex",
+							width: `${virtualPaddingRight}px`,
+						}}
+					/>
+				) : null}
+			</>
+		),
+	});
+}

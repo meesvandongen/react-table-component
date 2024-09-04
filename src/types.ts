@@ -978,6 +978,11 @@ export type MRT_TableOptions<TData extends MRT_RowData> = Omit<
 		classes: string;
 		children: ReactNode;
 	}) => JSX.Element;
+	renderTableFooterRow: (props: {
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+	}) => JSX.Element;
 
 	rowCount?: number;
 	rowNumberDisplayMode?: "original" | "static";
