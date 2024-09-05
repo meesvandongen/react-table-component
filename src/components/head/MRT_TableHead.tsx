@@ -1,21 +1,14 @@
-import {
-	TableTh,
-	TableThead,
-	type TableTheadProps,
-	TableTr,
-} from "@mantine/core";
 import clsx from "clsx";
 import type {
 	MRT_ColumnVirtualizer,
 	MRT_RowData,
 	MRT_TableInstance,
 } from "../../types";
-import { parseFromValuesOrFunc } from "../../utils/utils";
 import { MRT_ToolbarAlertBanner } from "../toolbar/MRT_ToolbarAlertBanner";
 import classes from "./MRT_TableHead.module.css";
 import { MRT_TableHeadRow } from "./MRT_TableHeadRow";
 
-interface Props<TData extends MRT_RowData> extends TableTheadProps {
+interface Props<TData extends MRT_RowData> {
 	columnVirtualizer?: MRT_ColumnVirtualizer;
 	table: MRT_TableInstance<TData>;
 }
@@ -23,7 +16,6 @@ interface Props<TData extends MRT_RowData> extends TableTheadProps {
 export function MRT_TableHead<TData extends MRT_RowData>({
 	columnVirtualizer,
 	table,
-	...rest
 }: Props<TData>) {
 	const {
 		getHeaderGroups,
@@ -32,53 +24,41 @@ export function MRT_TableHead<TData extends MRT_RowData>({
 		options: {
 			enableStickyHeader,
 			layoutMode,
-			mantineTableHeadProps,
 			positionToolbarAlertBanner,
+			renderTableHead,
 		},
 		refs: { tableHeadRef },
 	} = table;
 	const { isFullScreen, showAlertBanner } = getState();
 
-	const tableHeadProps = {
-		...parseFromValuesOrFunc(mantineTableHeadProps, {
-			table,
-		}),
-		...rest,
-	};
-
 	const stickyHeader = enableStickyHeader || isFullScreen;
 
-	return (
-		<TableThead
-			{...tableHeadProps}
-			className={clsx(
-				classes.root,
-				layoutMode?.startsWith("grid")
-					? classes["root-grid"]
-					: classes["root-table-row-group"],
-				stickyHeader && classes["root-sticky"],
-				tableHeadProps?.className,
-			)}
-			pos={
-				stickyHeader && layoutMode?.startsWith("grid") ? "sticky" : "relative"
-			}
-			ref={(ref: HTMLTableSectionElement) => {
-				tableHeadRef.current = ref;
-				if (tableHeadProps?.ref) {
-					// @ts-ignore
-					tableHeadProps.ref.current = ref;
-				}
-			}}
-		>
-			{positionToolbarAlertBanner === "head-overlay" &&
+	const ref = (ref: HTMLTableSectionElement) => {
+		tableHeadRef.current = ref;
+	};
+
+	return renderTableHead({
+		ref,
+		classes: clsx(
+			classes.root,
+			stickyHeader && classes["root-sticky"],
+			stickyHeader && layoutMode?.startsWith("grid")
+				? classes.sticky
+				: classes.relative,
+			layoutMode?.startsWith("grid")
+				? classes["root-grid"]
+				: classes["root-table-row-group"],
+		),
+		children:
+			positionToolbarAlertBanner === "head-overlay" &&
 			(showAlertBanner || getSelectedRowModel().rows.length > 0) ? (
-				<TableTr
+				<tr
 					className={clsx(
 						classes["banner-tr"],
 						layoutMode?.startsWith("grid") && classes.grid,
 					)}
 				>
-					<TableTh
+					<th
 						className={clsx(
 							classes["banner-th"],
 							layoutMode?.startsWith("grid") && classes.grid,
@@ -86,8 +66,8 @@ export function MRT_TableHead<TData extends MRT_RowData>({
 						colSpan={table.getVisibleLeafColumns().length}
 					>
 						<MRT_ToolbarAlertBanner table={table} />
-					</TableTh>
-				</TableTr>
+					</th>
+				</tr>
 			) : (
 				getHeaderGroups().map((headerGroup) => (
 					<MRT_TableHeadRow
@@ -97,7 +77,7 @@ export function MRT_TableHead<TData extends MRT_RowData>({
 						table={table}
 					/>
 				))
-			)}
-		</TableThead>
-	);
+			),
+		table,
+	});
 }

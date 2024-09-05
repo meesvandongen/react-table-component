@@ -1,21 +1,23 @@
-import { Box, type BoxProps } from "@mantine/core";
 import clsx from "clsx";
 import type { MRT_Header, MRT_RowData, MRT_TableInstance } from "../../types";
 import classes from "./MRT_TableHeadCellResizeHandle.module.css";
 
-interface Props<TData extends MRT_RowData> extends BoxProps {
+interface Props<TData extends MRT_RowData> {
 	header: MRT_Header<TData>;
 	table: MRT_TableInstance<TData>;
 }
 
-export const MRT_TableHeadCellResizeHandle = <TData extends MRT_RowData>({
+export function MRT_TableHeadCellResizeHandle<TData extends MRT_RowData>({
 	header,
 	table,
-	...rest
-}: Props<TData>) => {
+}: Props<TData>) {
 	const {
 		getState,
-		options: { columnResizeDirection, columnResizeMode },
+		options: {
+			columnResizeDirection,
+			columnResizeMode,
+			renderTableHeadCellResizeHandle,
+		},
 		setColumnSizingInfo,
 	} = table;
 	const { density } = getState();
@@ -30,30 +32,29 @@ export const MRT_TableHeadCellResizeHandle = <TData extends MRT_RowData>({
 				}px)`
 			: undefined;
 
-	return (
-		<Box
-			onDoubleClick={() => {
-				setColumnSizingInfo((old) => ({
-					...old,
-					isResizingColumn: false,
-				}));
-				column.resetSize();
-			}}
-			onMouseDown={handler}
-			onTouchStart={handler}
-			role="separator"
-			{...rest}
-			__vars={{ "--mrt-transform": offset, ...rest.__vars }}
-			className={clsx(
-				"mrt-table-head-cell-resize-handle",
-				classes.root,
-				classes[`root-${columnResizeDirection}`],
-				!header.subHeaders.length &&
-					columnResizeMode === "onChange" &&
-					classes["root-hide"],
-				density,
-				rest.className,
-			)}
-		/>
-	);
-};
+	const onDoubleClick = () => {
+		setColumnSizingInfo((old) => ({
+			...old,
+			isResizingColumn: false,
+		}));
+		column.resetSize();
+	};
+	return renderTableHeadCellResizeHandle({
+		header,
+		table,
+		column,
+		onDoubleClick,
+		onMouseDown: handler,
+		onTouchStart: handler,
+		offset,
+		className: clsx(
+			"mrt-table-head-cell-resize-handle",
+			classes.root,
+			classes[`root-${columnResizeDirection}`],
+			!header.subHeaders.length &&
+				columnResizeMode === "onChange" &&
+				classes["root-hide"],
+			density,
+		),
+	});
+}

@@ -983,6 +983,22 @@ export type MRT_TableOptions<TData extends MRT_RowData> = Omit<
 		classes: string;
 		children: ReactNode;
 	}) => JSX.Element;
+	renderTableHeadCellResizeHandle: (props: {
+		header: MRT_Header<TData, MRT_CellValue>;
+		column: MRT_Column<TData, MRT_CellValue>;
+		table: MRT_TableInstance<TData>;
+		onDoubleClick: () => void;
+		onMouseDown: (e: unknown) => void;
+		onTouchStart: (e: unknown) => void;
+		offset: string | number | undefined;
+		className: string;
+	}) => ReactNode;
+	renderTableHead: (props: {
+		table: MRT_TableInstance<TData>;
+		classes: string;
+		children: ReactNode;
+		ref: (ref: HTMLTableSectionElement) => void;
+	}) => JSX.Element;
 
 	rowCount?: number;
 	rowNumberDisplayMode?: "original" | "static";

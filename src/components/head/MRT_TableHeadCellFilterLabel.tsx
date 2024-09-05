@@ -1,10 +1,3 @@
-import {
-	ActionIcon,
-	type ActionIconProps,
-	Popover,
-	Tooltip,
-	Transition,
-} from "@mantine/core";
 import clsx from "clsx";
 import { type MouseEvent, useState } from "react";
 import { localizedFilterOption } from "../../fns/filterFns";
@@ -21,14 +14,9 @@ interface Props<TData extends MRT_RowData> extends ActionIconProps {
 export const MRT_TableHeadCellFilterLabel = <TData extends MRT_RowData>({
 	header,
 	table,
-	...rest
 }: Props<TData>) => {
 	const {
-		options: {
-			columnFilterDisplayMode,
-			icons: { IconFilter },
-			localization,
-		},
+		options: { columnFilterDisplayMode },
 		refs: { filterInputRefs },
 		setShowColumnFilters,
 	} = table;
@@ -52,37 +40,12 @@ export const MRT_TableHeadCellFilterLabel = <TData extends MRT_RowData>({
 	const currentFilterOption = columnDef._filterFn;
 	const filterValueFn =
 		columnDef.filterTooltipValueFn || ((value) => value as string);
-	type FilterValueType = Parameters<typeof filterValueFn>[0];
-	const filterTooltip =
-		columnFilterDisplayMode === "popover" && !isFilterActive
-			? localization.filterByColumn?.replace(
-					"{column}",
-					String(columnDef.header),
-				)
-			: localization.filteringByColumn
-					.replace("{column}", String(columnDef.header))
-					.replace(
-						"{filterType}",
-						localizedFilterOption(localization, currentFilterOption),
-					)
-					.replace(
-						"{filterValue}",
-						`"${
-							Array.isArray(column.getFilterValue())
-								? (
-										column.getFilterValue() as [
-											FilterValueType,
-											FilterValueType,
-										]
-									)
-										.map((v) => filterValueFn(v))
-										.join(
-											`" ${isRangeFilter ? localization.and : localization.or} "`,
-										)
-								: filterValueFn(column.getFilterValue())
-						}"`,
-					)
-					.replace('" "', "");
+	const filterTooltip = {
+		column: String(columnDef.header),
+		filterType: currentFilterOption,
+		filterValue,
+		filterValueFn,
+	};
 
 	return (
 		<>
